@@ -7,8 +7,8 @@ but can work as a starting point for any full stack project.
 
 It consists of two packages:
 
-- `api` which is a NodeJS project using Express for the API
-- `app` which is Next project using React for the web app
+-  api  which is a NodeJS project using Express for the API
+-  app  which is Next project using React for the web app
 
 Both packages are as small as possible but feel free to add more tools as you see fit.
 
@@ -17,7 +17,7 @@ Both packages are as small as possible but feel free to add more tools as you se
 This template assumes that there is a database already set up with tables and data.
 
 You can start a MySQL instance using Docker with the below command:  
-`docker run --name mysql -e MYSQL_ROOT_PASSWORD=mysql-root-password -e MYSQL_DATABASE=my-database -d -p 3306:3306 mysql:latest`
+ docker run --name mysql -e MYSQL_ROOT_PASSWORD=mysql-root-password -e MYSQL_DATABASE=my-database -d -p 3306:3306 mysql:latest 
 
 Then connect to this instance using any database management tool you prefer, such as MySQL Workbench, to set up your tables and add data.
 ![Testing your database](./images/db_test.png)
@@ -30,23 +30,23 @@ To get started you'll need two terminals.
 
 In the first terminal run the following commands:
 
-```
+   
 cd api
 cp .env-example .env
 npm install
 npm run dev
-```
+   
 
 You can then test the API using [Postman](https://www.postman.com/) at [http://localhost:3001/api](http://localhost:3001/api).
 ![Testing the API with Postman](./images/api_test.png)
 
 In the second terminal run the following commands:
 
-```
+   
 cd app
 npm install
 npm run dev
-```
+   
 
 You can then open the web app at [http://localhost:3000](http://localhost:3000).
 ![Testing the app with a browser](./images/app_test.png)
@@ -56,9 +56,9 @@ You can then open the web app at [http://localhost:3000](http://localhost:3000).
 ### Port conflict
 
 If you see the below error when trying to start either the API or the web app, then you have a port conflict.  
-Some other process is already listening on the port you want to use. Either stop that process or use another port by changing the PORT variable in the `.env` file for the package that is facing the conflict (API or web app).
+Some other process is already listening on the port you want to use. Either stop that process or use another port by changing the PORT variable in the  .env  file for the package that is facing the conflict (API or web app).
 
-```
+   
 node:events:496
       throw er; // Unhandled 'error' event
       ^
@@ -82,13 +82,13 @@ Emitted 'error' event on Server instance at:
   address: '::',
   port: 3001
 }
-```
+   
 
 ### Wrong database credentials
 
-If you see the error below when trying to make a query to your database it means that the variables `DB_USER` and `DB_PASSWORD` don't match the username and password used when starting the database container. Either find the right credentials or recreate your database container and store the new credentials.
+If you see the error below when trying to make a query to your database it means that the variables  DB_USER  and  DB_PASSWORD  don't match the username and password used when starting the database container. Either find the right credentials or recreate your database container and store the new credentials.
 
-```
+   
 /Users/hyf/dev/hyf/hyf-project-template/api/node_modules/mysql2/lib/packets/packet.js:728
     const err = new Error(message);
                 ^
@@ -110,13 +110,13 @@ Error: Access denied for user 'root'@'192.168.65.1' (using password: YES)
   sqlMessage: "Access denied for user 'root'@'192.168.65.1' (using password: YES)",
   sql: undefined
 }
-```
+   
 
 ### Using SSL when the database does not support it
 
-If you see the below error, then you are trying to establish a SSL (secure) connection to a database that doesn't support it, most likely you set the value of the environment variable `DB_USE_SSL` to "true" when it should be "false".
+If you see the below error, then you are trying to establish a SSL (secure) connection to a database that doesn't support it, most likely you set the value of the environment variable  DB_USE_SSL  to "true" when it should be "false".
 
-```
+   
 /Users/hyf/dev/hyf/hyf-project-template/api/node_modules/pg/lib/connection.js:77
           return self.emit('error', new Error('The server does not support SSL connections'))
                                     ^
@@ -165,14 +165,14 @@ AggregateError [ECONNREFUSED]:
     }
   ]
 }
-```
+   
 
 ### Broken TypeScript config file
-This boilerplate does not use TypeScript, but Next which is used in the `app` package has built in support for TypeScript.
-This means that Next (or rather `esbuild` which is used internally) will look for a TypeScript config file (`tsconfig.json`) in the current folder and all parent folders until it finds one.
+This boilerplate does not use TypeScript, but Next which is used in the  app  package has built in support for TypeScript.
+This means that Next (or rather  esbuild  which is used internally) will look for a TypeScript config file ( tsconfig.json ) in the current folder and all parent folders until it finds one.
 If it does find a TypeScript config file but that file is invalid or empty you'll see errors like this:
 
-```
+   
 ✘ [ERROR] Unexpected end of file in JSON
 
     ../../tsconfig.json:1:0:
@@ -193,7 +193,7 @@ Error: Build failed with 1 error:
     at Socket.readFromStdout (/Users/milton/dev/hyf/hyf-project-template/app/node_modules/esbuild/lib/main.js:680:7)
     at Socket.emit (node:events:519:28)
     at addChunk (node:internal/streams/readable:559:12)
-```
+   
 
 There are 3 possible solutions:
 1. Delete the offending TypeScript config file
@@ -206,14 +206,14 @@ There are 3 possible solutions:
 
 ## Applying consistent formatting
 
-Before you commit any changes you've made, you can run the command `npm run format` in either package to format the code using [Prettier](https://prettier.io/).
+Before you commit any changes you've made, you can run the command  npm run format  in either package to format the code using [Prettier](https://prettier.io/).
 
 Using a consistent code style makes it easier to read code which improves productivity and avoid bugs.  
 When collaborating with other people, a code base should still look like it was written by a single person.
 
 ## Checking for common code problems
 
-Before you commit your changes, you can use `npm run check` in either package to check for code issues using [ESLint](https://eslint.org/).
+Before you commit your changes, you can use  npm run check  in either package to check for code issues using [ESLint](https://eslint.org/).
 
 ESLint is a "linter", a tool that scans your code for common code problems, this can help you avoid bugs and write better code.
 
