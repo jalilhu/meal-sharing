@@ -2,8 +2,6 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-import knex from "./database_client.js"; // Ensure this exports a Knex instance
-import nestedRouter from "./routers/nested.js";
 import mealsRouter from "./routers/meals.js";
 import reservationRouter from "./routers/reservations.js";
 
