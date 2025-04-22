@@ -5,36 +5,153 @@ import knex from "../database_client.js";
 
 const mealsRouter = express.Router()
 
+
+mealsRouter.get("/", async (req, res) => {
+  try {
+    const allowedFields = ["when", "max_reservations", "price"]
+    const allowedDirection = ["asc", "desc"]
+    const { sortKey, sortDir } = req.query;
+
+    if (!sortKey || !allowedFields.includes(sortKey)) {
+      return res.status(400).send("Please provide a valid sortKey.");
+    }
+    const direction = sortDir && allowedDirection.includes(sortDir) ? sortDir : "asc";
+    const mealsSorted = await knex("Meal").select("*").orderBy(sortKey, direction);
+    res.status(200).json(mealsSorted);
+
+  } catch (error) {
+    console.error("Error getting meals sorted:", error);Ï
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+})
+
+
+mealsRouter.get("/", async (req, res) => {
+  const { maxPrice, title, availableReservations, dateAfter, dateBefore, limit } = req.query;
+
+  try {
+    let queryBuilder = knex("Meal").select("*");
+
+    if (maxPrice) {
+      queryBuilder = queryBuilder.where("price", "<=", parseFloat(maxPrice));
+    }
+
+    if (availableReservations === "true") {
+      queryBuilder = queryBuilder.where("max_reservations", ">", 0);
+    }
+
+    if (title) {
+      queryBuilder = queryBuilder.where("title", "like", `%${title}%`);
+    }
+
+    if (dateAfter) {
+      queryBuilder = queryBuilder.where("created_date", ">=", dateAfter);
+    }
+
+    if (dateBefore) {
+      queryBuilder = queryBuilder.where("created_date", "<=", dateBefore);
+    }
+
+    if (limit) {
+      queryBuilder = queryBuilder.limit(parseInt(limit));
+    }
+
+    const results = await queryBuilder;
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 mealsRouter.get("/", async (req, res) => {
 
-  try{
+  try {
     const meals = await knex("Meal").select("*");
 
-    if(meals.length === 0){
-        res.status(404).json({message: "No meals found"})
-        return
+    if (meals.length === 0) {
+      res.status(404).json({ message: "No meals found" })
+      return
     }
 
     res.status(200).json(meals);
-    
-} catch (error) {
-  console.error("Error fetching meals:", error);
-  res.status(500).json({ error: "Internal Server Error" });
-}
+
+  } catch (error) {
+    console.error("Error fetching meals:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 mealsRouter.post("/", async (req, res) => {
-  try{
+  try {
     const [newMealId] = await knex("Reservation").insert(req.body.meal);
     res.status(201).json({
-        message: "The new meal has been added",
-        mealId: newMealId
-      });
-} catch (error) {
+      message: "The new meal has been added",
+      mealId: newMealId
+    });
+  } catch (error) {
     console.error("Error creating meal:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 })
+
+mealsRouter.get("/:meal_id/reviews", async (req, res) => {
+  const mealId = req.params.meal_id
+  console.log(mealId)
+  try {
+    const mealReviews = await knex('Review').select("*").where("meal_id", "=", mealId);
+    if (mealReviews === 0) {
+      res.status(201).json({ message: "No reviews found" })
+      return;
+    }
+    res.status(200).json(mealReviews)
+
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+})
+
+mealsRouter.get("/future-meals", async (req, res) => {
+  try {
+    const todaysDate = new Date()
+    const queryBuilder = await knex('Meal').select("*").where("When", ">", todaysDate);
+    res.status(200).json(queryBuilder)
+  } catch (error) {
+    console.error("Error fetching tables:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+mealsRouter.get("/past-meals", async (req, res) => {
+  try {
+    const todaysDate = new Date()
+    const queryBuilder = await knex('Meal').select("*").where("When", "<", todaysDate);
+    res.status(200).json(queryBuilder)
+  } catch (error) {
+    console.error("Error fetching tables:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+})
+
+mealsRouter.get("/first-meal", async (req, res) => {
+  try {
+    const queryBuilder = await knex('Meal').select("*").min("id").groupBy("id");
+    res.status(200).json(queryBuilder[0])
+  } catch (error) {
+    console.error("Error fetching tables:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+mealsRouter.get("/last-meal", async (req, res) => {
+  const LAST_MEAL_QUERY = "SELECT * FROM Meal WHERE id = (SELECT MAX(id) FROM Meal)";
+  try {
+    const queryBuilder = await knex('Meal').select("*").max("id").groupBy("id");
+    res.status(200).json(queryBuilder[queryBuilder.length - 1])
+  } catch (error) {
+    console.error("Error fetching tables:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 mealsRouter.get("/:id", async (req, res) => {
   const mealID = req.params.id
@@ -79,79 +196,21 @@ mealsRouter.put("/:id", async (req, res) => {
   }
 });
 
-/// DELETE based on the Given ID
 mealsRouter.delete("/:id", async (req, res) => {
   const mealId = req.params.id
   try {
-    const meal = await knex('Meal').where({id : mealId})
-    if(meal.length === 0){
-      res.status(404).json({message: "meal was not found!"})
+    const meal = await knex('Meal').where({ id: mealId })
+    if (meal.length === 0) {
+      res.status(404).json({ message: "meal was not found!" })
       return
     }
-    await knex('Meal').where({id : mealId}).del()
+    await knex('Meal').where({ id: mealId }).del()
     res.status(200).json({ message: 'Meal deleted successfully' })
   } catch (error) {
     console.error("Error fetching tables:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-
-mealsRouter.get("/future-meals", async (req, res) => {
-  try {
-    const FUTURE_MEALS_QUERY = "SELECT * FROM Meal WHERE Meal.When > NOW()";
-    const result = await knex.raw(FUTURE_MEALS_QUERY);
-    const meals = Array.isArray(result) ? result[0] : result.rows || result
-    res.json({ meals });
-  } catch (error) {
-    console.error("Error fetching tables:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-mealsRouter.get("/past-meals", async (req, res) => {
-  try {
-    const PAST_MEALS_QUERY = "SELECT * FROM Meal WHERE Meal.When < NOW()";
-    const result = await knex.raw(PAST_MEALS_QUERY);
-    const meals = Array.isArray(result) ? result[0] : result.rows || result
-    res.json({ meals });
-  } catch (error) {
-    console.error("Error fetching tables:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-})
-
-
-mealsRouter.get("/first-meal", async (req, res) => {
-  try {
-    const FIRST_MEAL_QUERY = "SELECT * FROM Meal WHERE id = (SELECT MIN(id) FROM Meal)";
-    const result = await knex.raw(FIRST_MEAL_QUERY);
-    const meal = result[0]?.[0] || result.rows?.[0] || null;
-    if (!meal) {
-      res.status(404).json({ message: "there no meals available at the moment." })
-    }
-    res.json(meal);
-  } catch (error) {
-    console.error("Error fetching tables:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-mealsRouter.get("/last-meal", async (req, res) => {
-  try {
-    const LAST_MEAL_QUERY = "SELECT * FROM Meal WHERE id = (SELECT MAX(id) FROM Meal)";
-    const result = await knex.raw(LAST_MEAL_QUERY);
-    const meal = result[0]?.[0];
-    if (!meal) {
-      res.status(404).json({ message: "there no meals available at the moment." })
-    }
-    res.status(200).json({ message: meal });
-  } catch (error) {
-    console.error("Error fetching tables:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
 
 
 export default mealsRouter;
