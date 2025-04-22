@@ -4,6 +4,8 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import mealsRouter from "./routers/meals.js";
 import reservationRouter from "./routers/reservations.js";
+import contactsRouter from "./routers/contacts.js";
+import reviewRouter from "./routers/review.js";
 
 
 const app = express();
@@ -15,6 +17,10 @@ const apiRouter = express.Router();
 apiRouter.use("/meals", mealsRouter);
 
 apiRouter.use("/reservations", reservationRouter);
+
+apiRouter.use("/contacts", contactsRouter);
+
+apiRouter.use("/reviews", reviewRouter);
 
 app.use("/api", apiRouter);
 
