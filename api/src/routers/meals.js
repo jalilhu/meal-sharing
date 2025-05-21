@@ -7,6 +7,25 @@ const mealsRouter = express.Router()
 
 
 mealsRouter.get("/", async (req, res) => {
+
+  try {
+    const meals = await knex("Meal").select("*");
+
+    if (meals.length === 0) {
+      res.status(404).json({ message: "No meals found" })
+      return
+    }
+
+    res.status(200).json(meals);
+
+  } catch (error) {
+    console.error("Error fetching meals:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+mealsRouter.get("/", async (req, res) => {
   try {
     const allowedFields = ["when", "max_reservations", "price"]
     const allowedDirection = ["asc", "desc"]
@@ -20,7 +39,7 @@ mealsRouter.get("/", async (req, res) => {
     res.status(200).json(mealsSorted);
 
   } catch (error) {
-    console.error("Error getting meals sorted:", error);Ï
+    console.error("Error getting meals sorted:", error); Ï
     res.status(500).json({ error: "Internal Server Error" });
   }
 })
@@ -63,23 +82,6 @@ mealsRouter.get("/", async (req, res) => {
   }
 });
 
-mealsRouter.get("/", async (req, res) => {
-
-  try {
-    const meals = await knex("Meal").select("*");
-
-    if (meals.length === 0) {
-      res.status(404).json({ message: "No meals found" })
-      return
-    }
-
-    res.status(200).json(meals);
-
-  } catch (error) {
-    console.error("Error fetching meals:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
 
 mealsRouter.post("/", async (req, res) => {
   try {
